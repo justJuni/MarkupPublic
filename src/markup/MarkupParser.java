@@ -1,24 +1,28 @@
+package markup;
+
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.io.BufferedReader;
+import schema.saveSQL;
 
 //This java class parses .html files to score aribitrary values to html tags
 public class MarkupParser {
 
 	//String array reads in prefix of filenames in keyname_yyyy_mm_dd format
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
     	BufferedReader buffR = null;	//Create buffer
     	String currentln;	//Current Line in the buffer
     	String sqlString;	//String created for debugging purposes
-    	String jdbcDriver = "com.mysql.jdbc.Driver";
-	    String dbName = "TIGER";
-
+    	saveSQL save = new saveSQL();
+    	
 	    //Try to parse in the file and Catch exceptions
     	try {
 			int total = 0;	//Total score
 			int min = -1;	//Lowest score
 			int max = -1;	//Highest score
-
+			save.myConnection();
+			
 			//For loops to get each filenames
     		for (int i = 0; i < args.length; i++){
     			args[i] = args[i].toLowerCase();	//Ensure the filenames are lowercase
@@ -30,7 +34,7 @@ public class MarkupParser {
 				String day = filename[3];
 				int score = 0;	//Score to sum up
 
-				buffR = new BufferedReader(new FileReader("../data/" + args[i] + ".html"));	//Reading in files
+				buffR = new BufferedReader(new FileReader(args[i]));	//Reading in files
 
 				//Reading each line of the file and add score values
 		    	while ((currentln = buffR.readLine()) != null) {
@@ -87,6 +91,7 @@ public class MarkupParser {
 				min = Math.min(score, min);
 				max = Math.max(score, max);
 
+				save.myQuery("INSERT INTO scores (keyname, date, score) VALUES ('" + keyname + "','" + year + "-" + month + "-" + day + "','" + score + "');");
 				sqlString = args[i] + " " + score;
         		System.out.println(sqlString);
         	}
